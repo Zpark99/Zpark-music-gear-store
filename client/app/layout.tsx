@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -28,6 +27,22 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+
+        {/* 전역 푸터 (밑 화면 - 회색) */}
+        <footer className="bg-[#d3d3d3] text-gray-400 py-3 text-sm">
+          <div className="max-w-5xl mx-auto px-4 flex flex-col items-center gap-2 text-center">
+            <p>개인정보 처리 방침 | 이용안내 | 이용약관 | 광고/제휴 문의</p>
+          </div>
+        </footer>
+
+        {/* 전역 푸터 (밑 화면 - 검은 배경) */}
+        <footer className="bg-[#1a1a1a] text-gray-400 py-10 text-sm">
+          <div className="max-w-5xl mx-auto px-4 flex flex-col items-center gap-2 text-center">
+            <p>상호 : (주)뮤직기어샵 | 대표 : 박진재 | 메일 : qkrwlswo96@naver.com | 사업자등록번호 : 6767-6767676767</p>
+            <p>대표번호 : 010-2697-7734 | 주소 : 인천광역시 연수구 송도국제대로 66 캠퍼스타운역</p>
+            <p className="mt-4">copyright © music-gear-shop co.ltd all rights reserved.</p>
+          </div>
+        </footer>
       </body>
     </html>
   );

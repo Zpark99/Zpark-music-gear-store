@@ -1,0 +1,227 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+
+  provider = "prisma-client-js"
+
+}
+
+
+
+datasource db {
+
+  provider = "postgresql"
+
+  url      = env("DATABASE_URL")
+
+}
+
+
+
+// 1. 사용자 (User)
+
+model User {
+
+  id        Int      @id @default(autoincrement())
+
+  email     String   @unique
+
+  password  String   // 해시된 비밀번호 저장
+
+  name      String?
+
+  role      Role     @default(USER) // ADMIN, USER 구분
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+
+
+  orders    Order[]
+
+  cart      Cart?
+
+}
+
+
+
+// 2. 카테고리 (Category) - 예: 일렉기타, 베이스, 이펙터
+
+model Category {
+
+  id        Int       @id @default(autoincrement())
+
+  name      String
+
+  products  Product[]
+
+}
+
+
+
+// 3. 상품 (Product) - 핵심 테이블
+
+model Product {
+
+  id          Int      @id @default(autoincrement())
+
+  name        String
+
+  description String   @db.Text
+
+  price       Int
+
+  stock       Int      @default(0) // 재고
+
+  imageUrl    String?  // 대표 이미지
+
+
+
+  // 악기마다 다른 스펙을 JSON으로 저장
+
+  // 예: { "body": "Alder", "pickup": "SSS" } 또는 { "voltage": "9V", "bypass": "True" }
+
+  specs       Json?    
+
+
+
+  categoryId  Int
+
+  category    Category @relation(fields: [categoryId], references: [id])
+
+
+
+  orderItems  OrderItem[]
+
+  cartItems   CartItem[]
+
+  
+
+  createdAt   DateTime @default(now())
+
+  updatedAt   DateTime @updatedAt
+
+}
+
+
+
+// 4. 주문
+
+model Order {
+
+  id          Int         @id @default(autoincrement())
+
+  userId      Int
+
+  user        User        @relation(fields: [userId], references: [id])
+
+  status      OrderStatus @default(PENDING) // 주문 상태
+
+  totalPrice  Int
+
+  
+
+  items       OrderItem[]
+
+  
+
+  createdAt   DateTime    @default(now())
+
+}
+
+
+
+// 주문 상세 아이템
+
+model OrderItem {
+
+  id        Int     @id @default(autoincrement())
+
+  orderId   Int
+
+  order     Order   @relation(fields: [orderId], references: [id])
+
+  productId Int
+
+  product   Product @relation(fields: [productId], references: [id])
+
+  
+
+  quantity  Int
+
+  price     Int     // 주문 시점의 가격
+
+}
+
+
+
+// 5. 장바구니 
+
+model Cart {
+
+  id        Int        @id @default(autoincrement())
+
+  userId    Int        @unique
+
+  user      User       @relation(fields: [userId], references: [id])
+
+  
+
+  items     CartItem[]
+
+  updatedAt DateTime   @updatedAt
+
+}
+
+
+
+model CartItem {
+
+  id        Int     @id @default(autoincrement())
+
+  cartId    Int
+
+  cart      Cart    @relation(fields: [cartId], references: [id])
+
+  productId Int
+
+  product   Product @relation(fields: [productId], references: [id])
+
+  
+
+  quantity  Int
+
+}
+
+
+
+// Enum 정의
+
+enum Role {
+
+  USER
+
+  ADMIN
+
+}
+
+
+
+enum OrderStatus {
+
+  PENDING   // 결제 대기
+
+  PAID      // 결제 완료
+
+  SHIPPED   // 배송 중
+
+  DELIVERED // 배송 완료
+
+  CANCELED  // 취소됨
+
+}
