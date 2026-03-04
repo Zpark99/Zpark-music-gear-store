@@ -29,9 +29,11 @@ export default function RootLayout({
         {children}
 
         {/* 전역 푸터 (밑 화면 - 회색) */}
-        <footer className="bg-[#d3d3d3] text-gray-400 py-3 text-sm">
-          <div className="max-w-5xl mx-auto px-4 flex flex-col items-center gap-2 text-center">
-            <p>개인정보 처리 방침 | 이용안내 | 이용약관 | 광고/제휴 문의</p>
+        <footer className="bg-[#d3d3d3] text-gray-500 py-4 text-sm font-medium border-t border-gray-200">
+          <div className="w-full px-8 flex justify-start">
+            <p className="cursor-pointer hover:text-black transition-colors">
+              개인정보처리방침 &nbsp;|&nbsp; 이용안내 &nbsp;|&nbsp; 이용약관 &nbsp;|&nbsp; 광고/제휴 문의
+            </p>
           </div>
         </footer>
 
