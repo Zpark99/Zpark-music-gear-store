@@ -43,7 +43,6 @@ export default function HomePage() {
     { id: 5, name: "Epiphone 에피폰 일렉기타 Les Paul Traditional Pro IV Metallic Gold", price: "801,000", discount: "41%", tag: "" }
   ];
 
-  // 💡 비어있던 전자드럼과 멀티이펙터 데이터 꽉꽉 채워넣었습니다!
   const bestProducts: Record<string, Product[]> = {
     '일렉기타': [
       { id: 11, brand: "Beyond", name: "비욘드 일렉기타 Classic Standard-E", price: "198,000", originalPrice: "258,000", discount: "23%", tag: "" },
@@ -157,7 +156,8 @@ export default function HomePage() {
           
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {newArrivals.map((item) => (
-              <Card key={item.id} className="min-w-[220px] md:min-w-[260px] snap-start cursor-pointer border-none shadow-none group shrink-0">
+              <Link href={`/detail/${item.id}`} key={item.id} className="min-w-[220px] md:min-w-[260px] snap-start shrink-0">
+              <Card className="cursor-pointer border-none shadow-none group h-full">
                 <CardContent className="p-0 relative">
                   <div className="bg-gray-100 rounded-sm h-64 mb-4 flex items-center justify-center text-gray-400 text-sm group-hover:bg-gray-200 transition-colors">
                     상품 이미지
@@ -180,6 +180,7 @@ export default function HomePage() {
                   </div>
                 </CardContent>
               </Card>
+            </Link>
             ))}
           </div>
         </section>
@@ -208,7 +209,8 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-left min-h-[400px]">
             {bestProducts[activeCategory]?.length > 0 ? (
               bestProducts[activeCategory].map((item) => (
-                 <Card key={item.id} className="cursor-pointer border-none shadow-none group relative">
+                <Link href={`/detail/${item.id}`} key={item.id}>
+                 <Card className="cursor-pointer border-none shadow-none group relative h-full">
                    <CardContent className="p-0">
                      <div className="bg-gray-100 rounded-sm h-64 mb-4 flex items-center justify-center text-gray-400 text-sm relative group-hover:bg-gray-200 transition-colors">
                        상품 이미지
@@ -233,6 +235,7 @@ export default function HomePage() {
                      </div>
                    </CardContent>
                  </Card>
+                </Link>
               ))
             ) : (
               <div className="col-span-full py-20 text-center text-gray-400 font-medium">
