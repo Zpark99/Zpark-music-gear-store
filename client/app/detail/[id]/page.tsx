@@ -1,49 +1,94 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation"; // 💡 주소창 번호를 읽어오는 마법의 부품!
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, ShoppingBag, User, Plus, Minus, Heart } from "lucide-react";
+import { supabase } from "@/lib/supabase"; // 
 
-type ProductType = {
+// DB 설계도
+interface Product {
+  id: number;
   brand: string;
   name: string;
   price: number;
-  originalPrice: string;
-  tag: string;
-  image: string;
-};
-
-// 임시 데이터베이스 
-const productDB: Record<string, ProductType> = {
-  "1": { brand: "Beyond", name: "비욘드 일렉기타 Classic Standard-E", price: 198000, originalPrice: "258,000원", tag: "23% SALE", image: "🎸 기타 썸네일" },
-  "2": { brand: "YAMAHA", name: "야마하 전자드럼 DTX452K", price: 900000, originalPrice: "925,000원", tag: "2% SALE", image: "🥁 드럼 썸네일" },
-  "3": { brand: "Headrush", name: "헤드러쉬 멀티이펙터 Flex Prime", price: 790000, originalPrice: "860,000원", tag: "8% SALE", image: "🎛️ 이펙터 썸네일" },
-};
+  originalPrice?: string;
+  discount?: string;
+  tag?: string;
+  category: string;
+  image?: string;
+}
 
 export default function ProductDetailPage() {
-  const params = useParams(); // 주소창 정보 가져옴
-  const productId = params.id as string; // 주소창의 숫자 (예: "1", "2")
-  
-  // DB에서 번호에 맞는 상품 꺼내오기 (잘못된 번호면 1번 상품 보여주기)
-  const product = productDB[productId] || productDB["1"];
+  const params = useParams();
+  const productId = params.id as string; 
 
+  // 상품 수량 이름 
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
   const [quantity, setQuantity] = useState(1);
+
+  //  화면 켜지면 id 기준 항목 탐색
+  useEffect(() => {
+    const fetchProductDetail = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Products') // Supabase 기반 Products 
+          .select('*')
+          .eq('id', productId) // "id가 <-> 주소창 번호 매칭"
+          .single();           // "한번에 하나만 보여줌"
+
+        if (error) throw error;
+        if (data) setProduct(data);
+      } catch (err) {
+        console.error("상세 데이터 실패:", err);
+        setErrorMsg("상품 정보를 불러오는데 실패했습니다. (혹은 없는 악기 입니다.)");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (productId) {
+      fetchProductDetail();
+    }
+  }, [productId]);
+
   const increase = () => setQuantity(prev => prev + 1);
   const decrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
+  // 로딩 중일 때 화면
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-4"></div>
+        <p className="text-lg font-bold text-gray-500">기다려주세요 ㅠㅠ</p>
+      </div>
+    );
+  }
+
+  // 에러 났거나 데이터가 없을 때 화면
+  if (errorMsg || !product) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+        <p className="text-xl font-bold text-red-500 mb-4">{errorMsg}</p>
+        <Link href="/"><Button>메인으로 도망가기</Button></Link>
+      </div>
+    );
+  }
+
+  // 오류 없을 때 화면
   return (
     <div className="min-h-screen bg-white">
-      
-      {/* 상단 3단 헤더 */}
+      {/* 상단 3단 헤더 (기존과 동일) */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between gap-8">
           <Link href="/" className="text-3xl font-black tracking-tighter shrink-0 text-green-700">MUSIC GEAR</Link>
           <div className="flex-1 max-w-xl relative hidden md:block">
-            <Input type="text" placeholder="노마진세일" className="w-full rounded-full pl-6 pr-12 h-11 border-2 border-gray-800 focus-visible:ring-0" />
+            <Input type="text" placeholder="검색" className="w-full rounded-full pl-6 pr-12 h-11 border-2 border-gray-800 focus-visible:ring-0" />
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-800 cursor-pointer" />
           </div>
           <div className="flex items-center gap-5 shrink-0">
@@ -54,14 +99,13 @@ export default function ProductDetailPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-12">
-        {/* 상품 핵심 정보 영역 */}
         <section className="flex flex-col md:flex-row gap-12 mb-20">
           
           {/* 좌측: 상품 사진 */}
           <div className="w-full md:w-1/2">
-            <div className="bg-gray-50 rounded-2xl h-[500px] flex items-center justify-center border border-gray-100 relative overflow-hidden text-4xl">
-               {product.image}
-               <Badge className="absolute top-4 left-4 bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1">{product.tag}</Badge>
+            <div className="bg-gray-50 rounded-2xl h-[500px] flex items-center justify-center border border-gray-100 relative overflow-hidden text-7xl">
+               {product.image || "🎸"}
+               {product.tag && <Badge className="absolute top-4 left-4 bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1">{product.tag}</Badge>}
             </div>
           </div>
 
@@ -74,8 +118,8 @@ export default function ProductDetailPage() {
               </h1>
               
               <div className="flex items-end gap-3 mb-6">
-                <span className="text-4xl font-black text-red-600">{product.price.toLocaleString()}원</span>
-                <span className="text-lg font-medium text-gray-400 line-through mb-1">{product.originalPrice}</span>
+                <span className="text-4xl font-black text-red-600">{product.price?.toLocaleString()}원</span>
+                {product.originalPrice && <span className="text-lg font-medium text-gray-400 line-through mb-1">{product.originalPrice}</span>}
               </div>
             </div>
 
