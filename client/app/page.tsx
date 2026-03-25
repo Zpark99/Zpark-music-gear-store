@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Menu, ShoppingBag, User } from "lucide-react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
+import { type User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Product {
   id: number;
@@ -23,6 +25,34 @@ interface Product {
 }
 
 export default function HomePage() {
+  const router = useRouter();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // 로그인 증거있나 확인
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    checkUser();
+
+    // 로그인/로그아웃 UI 변경
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    // 컴포넌트 꺼질 때 센서 해제
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // 로그아웃   
+  const handleLogout = async () => {
+    await supabase.auth.signOut(); 
+    alert("로그아웃 되었습니다 👋");
+    router.push("/");
+  };
 
   const [activeCategory, setActiveCategory] = useState('일렉기타');
 
@@ -46,7 +76,7 @@ export default function HomePage() {
       console.log("Supabase가 준 데이터:", data);
       
       if (data) setProducts(data);
-    } catch (err) {
+    } catch {
       setErrorMsg("상품을 불러오는데 실패 했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsLoading(false);
@@ -68,9 +98,19 @@ export default function HomePage() {
         <div className="border-b border-gray-100 hidden md:block">
           <div className="max-w-6xl mx-auto px-4 h-8 flex items-center justify-end text-[11px] text-gray-500 font-medium">
             <div className="flex gap-4">
-              <Link href="/login" className="hover:text-black">로그인</Link>
-              <Link href="#" className="hover:text-black">회원가입</Link>
-              <Link href="#" className="hover:text-black">고객센터</Link>
+              {user ? (
+                <>
+                  <Link href="#" className="hover:text-black">마이페이지</Link>
+                  <button onClick={handleLogout} className="hover:text-black">로그아웃</button>
+                  <Link href="#" className="hover:text-black">고객센터</Link>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="hover:text-black">로그인</Link>
+                  <Link href="/signup" className="hover:text-black">회원가입</Link>
+                  <Link href="#" className="hover:text-black">고객센터</Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -82,7 +122,19 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-5 shrink-0">
             <ShoppingBag className="w-7 h-7 text-gray-800 cursor-pointer hover:text-green-600" />
-            <User className="w-7 h-7 text-gray-800 cursor-pointer hover:text-green-600" />
+            {/* 유저 정보가 있으면 로그아웃 버튼, 없으면 로그인 */}
+            {user ? (
+              <div className="flex items-center gap-4">
+                {/* 구글에서 가져온 이메일 앞부분만 보여주기*/}
+                <span className="text-sm font-bold text-green-700 hidden md:block">
+                  {user.email?.split('@')[0]}님 환영합니다!
+                </span>
+              </div>
+            ) : (
+              <Link href="/login">
+                <User className="w-7 h-7 text-gray-800 cursor-pointer hover:text-green-700" />
+              </Link>
+            )}
           </div>
         </div>
         <div className="max-w-6xl mx-auto px-4 h-12 flex items-center gap-8 text-sm font-bold text-gray-800">

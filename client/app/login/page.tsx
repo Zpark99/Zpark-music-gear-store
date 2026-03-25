@@ -1,30 +1,83 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link"; // 💡 Link 추가!
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) return alert("아이디(이메일)와 비밀번호를 입력해주세요!");
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      alert("로그인 성공!");
+      router.push("/");
+    } catch {
+      alert("로그인 실패: 이메일이나 비밀번호를 확인해주세요.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 구글 로그인
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`, // 로그인 성공하면 메인페이지로
+      }
+    });
+    if (error) alert("구글 로그인 에러: " + error.message);
+  };
+
+  // 카카오 로그인
+  const handleKakaoLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+      }
+    });
+    if (error) alert("카카오 로그인 에러: " + error.message);
+  };
+
   return (
-    // 1. 전체 화면 정렬 
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      
-      {/* 2. 하얀색 로그인 박스 */}
       <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm border border-gray-100">
-        
-        {/* 상단 타이틀 */}
         <h1 className="mb-8 text-2xl font-bold text-center">로그인</h1> 
         
-        {/* 3. 입력 폼 영역  */}
         <div className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">아이디</label>
-            <Input type="email" placeholder="아이디를 입력 해 주세요." className="h-12"/>
+            <label className="mb-2 block text-sm font-semibold text-gray-700">아이디 (이메일)</label>
+            <Input 
+              type="email" 
+              placeholder="hello@musicgear.com" 
+              className="h-12"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">비밀번호</label>
-            <Input type="password" placeholder="비밀번호를 입력하여 주세요." className="h-12" />
+            <Input 
+              type="password" 
+              placeholder="비밀번호를 입력하여 주세요." 
+              className="h-12" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
 
-          {/* 아이디 저장 체크박스 */}
           <div className="flex items-center gap-2">
             <input type="checkbox" id="saveId" className="h-4 w-4 rounded border-gray-300 cursor-pointer" />
             <label htmlFor="saveId" className="text-sm text-gray-600 cursor-pointer select-none">
@@ -32,36 +85,36 @@ export default function LoginPage() {
             </label>        
           </div>
 
-          {/* 메인 로그인 버튼 */}
-          <Button className="h-12 w-full bg-black text-base text-white hover:bg-gray-800 mt-2">
-            로그인
+          <Button 
+            onClick={handleLogin}
+            disabled={isLoading}
+            className="h-12 w-full bg-black text-base text-white hover:bg-gray-800 mt-2"
+          >
+            {isLoading ? "처리 중..." : "로그인"}
           </Button>
         </div>
 
-        {/* 구분선 */}
         <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-gray-200 after:mt-0.5 after:flex-1 after:border-t after:border-gray-200">
-          <p className="mx-4 mb-0 text-center text-sm text-gray-500 font-medium">
-            SNS 간편 로그인
-          </p>
+          <p className="mx-4 mb-0 text-center text-sm text-gray-500 font-medium">SNS 간편 로그인</p>
         </div>
 
-        {/* SNS 버튼 영역 */}
         <div className="flex gap-3">
-          <Button variant="outline" className="h-12 flex-1 font-semibold">카카오톡</Button>
-          <Button variant="outline" className="h-12 flex-1 font-semibold">Google</Button>
+          <Button variant="outline" onClick={handleKakaoLogin} className="h-12 flex-1 font-semibold text-[#391B1B] bg-[#FEE500] hover:bg-[#FEE500]/90 border-none">
+            카카오톡
+          </Button>
+          <Button variant="outline" onClick={handleGoogleLogin} className="h-12 flex-1 font-semibold border-gray-300">
+            Google
+          </Button>
         </div>
-
-        {/* 회원가입, 아이디 찾기, 비밀번호 찾기 */}
         <div className="mt-8 flex justify-center gap-4 text-sm text-gray-500">
-          <button className="hover:text-black hover:underline">회원가입</button>
+          {/* 회원가입 페이지 이동 */}
+          <Link href="/signup" className="hover:text-black hover:underline">회원가입</Link>
           <span className="text-gray-300">|</span>
           <button className="hover:text-black hover:underline">아이디 찾기</button>
           <span className="text-gray-300">|</span>
           <button className="hover:text-black hover:underline">비밀번호 찾기</button>
         </div>
-
-      </div> {/* <-- 하얀색 로그인 박스는 여기서 닫혀야 함 */}
-      
+      </div> 
     </div>
   );
 }
