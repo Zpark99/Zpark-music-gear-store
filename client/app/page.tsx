@@ -1,5 +1,6 @@
 "use client";
 
+import { useCartStore } from "@/store/cartStore";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -27,6 +28,9 @@ interface Product {
 export default function HomePage() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  
+  const cart = useCartStore((state) => state.cart);
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     // 로그인 증거있나 확인
@@ -121,7 +125,16 @@ export default function HomePage() {
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-800 cursor-pointer" />
           </div>
           <div className="flex items-center gap-5 shrink-0">
-            <ShoppingBag className="w-7 h-7 text-gray-800 cursor-pointer hover:text-green-600" />
+            <div className="relative">
+              <Link href="/cart">
+                <ShoppingBag className="w-7 h-7 text-gray-800 cursor-pointer hover:text-green-600" />
+              </Link>
+          {totalQuantity > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full pointer-events-none">
+              {totalQuantity}
+            </span>
+          )}
+        </div>
             {/* 유저 정보가 있으면 로그아웃 버튼, 없으면 로그인 */}
             {user ? (
               <div className="flex items-center gap-4">

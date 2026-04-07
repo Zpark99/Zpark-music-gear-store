@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, ShoppingBag, User, Plus, Minus, Heart } from "lucide-react";
-import { supabase } from "@/lib/supabase"; // 
+import { supabase } from "@/lib/supabase";
+import { useCartStore } from "@/store/cartStore";
 
-// DB 설계도
+// Product 인터페이스
 interface Product {
   id: number;
   brand: string;
@@ -26,27 +27,32 @@ export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id as string; 
 
-  // 상품 수량 이름 
+  // 컴포넌트 상태
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  //  화면 켜지면 id 기준 항목 탐색
+  // 전역 상태
+  const cart = useCartStore((state) => state.cart);
+  const addToCart = useCartStore((state) => state.addToCart);
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // 상품 상세 데이터 패치
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
         const { data, error } = await supabase
-          .from('Products') // Supabase 기반 Products 
+          .from('Products')
           .select('*')
-          .eq('id', productId) // "id가 <-> 주소창 번호 매칭"
-          .single();           // "한번에 하나만 보여줌"
+          .eq('id', productId)
+          .single();
 
         if (error) throw error;
         if (data) setProduct(data);
       } catch (err) {
-        console.error("상세 데이터 실패:", err);
-        setErrorMsg("상품 정보를 불러오는데 실패했습니다. (혹은 없는 악기 입니다.)");
+        console.error(err);
+        setErrorMsg("상품 정보를 불러오는데 실패했습니다.");
       } finally {
         setIsLoading(false);
       }
@@ -57,10 +63,25 @@ export default function ProductDetailPage() {
     }
   }, [productId]);
 
+  // 수량 변경 함수
   const increase = () => setQuantity(prev => prev + 1);
   const decrease = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
-  // 로딩 중일 때 화면
+  // 장바구니 추가 함수
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    addToCart({
+      id: product.id.toString(),
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+    });
+    
+    alert("장바구니에 담겼습니다.");
+  };
+
+  // 로딩 UI
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -70,7 +91,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  // 에러 났거나 데이터가 없을 때 화면
+  // 에러 UI
   if (errorMsg || !product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -80,10 +101,10 @@ export default function ProductDetailPage() {
     );
   }
 
-  // 오류 없을 때 화면
+  // 정상 UI
   return (
     <div className="min-h-screen bg-white">
-      {/* 상단 3단 헤더 (기존과 동일) */}
+      {/* 헤더 */}
       <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between gap-8">
           <Link href="/" className="text-3xl font-black tracking-tighter shrink-0 text-green-700">MUSIC GEAR</Link>
@@ -92,7 +113,17 @@ export default function ProductDetailPage() {
             <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-800 cursor-pointer" />
           </div>
           <div className="flex items-center gap-5 shrink-0">
-            <ShoppingBag className="w-7 h-7 text-gray-800 cursor-pointer" />
+            {/* 헤더 뱃지 적용 */}
+            <div className="relative">
+              <Link href="/cart">
+                <ShoppingBag className="w-7 h-7 text-gray-800 cursor-pointer" />
+              </Link>
+              {totalQuantity > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full pointer-events-none">
+                  {totalQuantity}
+                </span>
+              )}
+            </div>
             <User className="w-7 h-7 text-gray-800 cursor-pointer" />
           </div>
         </div>
@@ -101,7 +132,7 @@ export default function ProductDetailPage() {
       <main className="max-w-6xl mx-auto px-4 py-12">
         <section className="flex flex-col md:flex-row gap-12 mb-20">
           
-          {/* 좌측: 상품 사진 */}
+          {/* 상품 이미지 */}
           <div className="w-full md:w-1/2">
             <div className="bg-gray-50 rounded-2xl h-[500px] flex items-center justify-center border border-gray-100 relative overflow-hidden text-7xl">
                {product.image || "🎸"}
@@ -109,7 +140,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          {/* 우측: 상품 정보 */}
+          {/* 상품 정보 */}
           <div className="w-full md:w-1/2 flex flex-col justify-between">
             <div>
               <p className="text-sm font-bold text-gray-500 mb-2">{product.brand}</p>
@@ -123,7 +154,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* 수량 및 총 결제금액 */}
+            {/* 수량 계산 */}
             <div className="bg-gray-50 p-6 rounded-xl mb-6 border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <span className="font-bold text-gray-700">수량</span>
@@ -139,10 +170,11 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* 버튼 */}
+            {/* 버튼 그룹 */}
             <div className="flex gap-4">
               <Button variant="outline" className="w-16 h-14 border-2 border-gray-300"><Heart className="w-6 h-6 text-gray-400" /></Button>
-              <Button variant="outline" className="flex-1 h-14 text-lg font-bold border-2 border-black text-black">장바구니 담기</Button>
+              {/* 장바구니 버튼 이벤트 연결 */}
+              <Button onClick={handleAddToCart} variant="outline" className="flex-1 h-14 text-lg font-bold border-2 border-black text-black">장바구니 담기</Button>
               <Button className="flex-1 h-14 text-lg font-bold bg-black text-white">바로 구매하기</Button>
             </div>
           </div>
