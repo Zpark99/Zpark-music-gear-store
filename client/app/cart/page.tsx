@@ -137,9 +137,11 @@ export default function CartPage() {
                 <span className="text-3xl font-black text-green-600">{totalPayPrice.toLocaleString()}원</span>
               </div>
 
-              <Button className="w-full h-14 text-lg font-bold bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300" disabled={cart.length === 0}>
-                구매하기 ({cart.length}개)
-              </Button>
+              <Link href="/checkout" className="w-full md:w-72">
+                <Button className="w-full h-14 text-lg font-bold bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-300" disabled={cart.length === 0}>
+                  구매하기 ({cart.length}개)
+                </Button>
+              </Link>
             </div>
           </aside>
 

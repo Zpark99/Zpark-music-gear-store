@@ -15,12 +15,13 @@ interface CartStore {
   increaseQuantity: (id: string) => void;
   decreaseQuantity: (id: string) => void;
   removeItem: (id: string) => void;
+  clearCart: () => void;
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
-      cart: [],
+      cart: [] as CartItem[],
 
       addToCart: (newItem) => set((state) => {
         const existingItem = state.cart.find((item) => item.id === newItem.id);
@@ -49,6 +50,8 @@ export const useCartStore = create<CartStore>()(
       removeItem: (id) => set((state) => ({
         cart: state.cart.filter((item) => item.id !== id),
       })),
+
+      clearCart: () => set({ cart: [] }),
     }),
     {
       name: 'music-gear-cart', // 로컬 스토리지에 저장될 이름
