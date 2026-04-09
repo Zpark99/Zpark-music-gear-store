@@ -71,6 +71,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+      throw new Error("강제 에러 발생 테스트!!"); // 에러 테스트용 임시 추가
       const { data, error } = await supabase
         .from('Products')
         .select('*');
