@@ -22,7 +22,7 @@ interface Product {
   discount?: string;
   tag?: string;
   category: string;
-  image?: string;
+  image_url?: string;
 }
 
 export default function HomePage() {
@@ -93,7 +93,10 @@ export default function HomePage() {
 
   const categoryTabs = ['일렉기타', '베이스', '통기타', '이펙터', '드럼'];
 
-  const filteredProducts = products.filter(product => product.category === activeCategory);
+  // '전체' 탭일 경우엔 다 보여주고, 아니면 필터링
+  const filteredProducts = activeCategory === '전체' 
+    ? products 
+    : products.filter(product => product.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-white">
@@ -215,8 +218,13 @@ export default function HomePage() {
                  <Link href={`/detail/${item.id}`} key={item.id}>
                    <Card className="cursor-pointer border-none shadow-none group relative h-full">
                      <CardContent className="p-0">
-                       <div className="bg-gray-100 rounded-sm h-64 mb-4 flex items-center justify-center text-3xl relative group-hover:bg-gray-200 transition-colors">
-                         {item.image || "🎸"}
+                       <div className="bg-gray-100 rounded-xl overflow-hidden h-64 mb-4 relative group-hover:shadow-md transition-all">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                         <img
+                           src={item.image_url || "https://via.placeholder.com/300?text=No+Image"} 
+                           alt={item.name}
+                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                         />
                          {item.discount && <div className="absolute top-3 right-3 bg-[#111] text-white text-xs font-bold w-10 h-10 flex items-center justify-center rounded-full">{item.discount}</div>}
                        </div>
                        <div className="px-1 space-y-1 relative">
