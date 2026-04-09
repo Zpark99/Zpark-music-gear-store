@@ -221,7 +221,7 @@ export default function HomePage() {
                        <div className="bg-gray-100 rounded-xl overflow-hidden h-64 mb-4 relative group-hover:shadow-md transition-all">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                          <img
-                           src={item.image_url || "https://via.placeholder.com/300?text=No+Image"} 
+                           src={item.image_url || "https://placehold.co/300x300/eeeeee/999999?text=No+Image"} 
                            alt={item.name}
                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                          />
