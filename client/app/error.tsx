@@ -29,7 +29,6 @@ export default function ErrorPage({
       </p>
       
       <div className="flex gap-4">
-        {/* reset() 함수를 부르면 Next.js가 데이터를 다시 Fetch 시도합니다 */}
         <Button 
           onClick={() => reset()} 
           className="bg-black text-white hover:bg-gray-800 h-12 px-8 font-bold rounded-full"
