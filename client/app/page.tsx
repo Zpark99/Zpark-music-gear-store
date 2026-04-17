@@ -71,16 +71,15 @@ export default function HomePage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-      throw new Error("강제 에러 발생 테스트!!"); // 에러 테스트용 임시 추가
       const { data, error } = await supabase
         .from('Products')
         .select('*');
 
       if (error) throw error;
-
-      console.log("Supabase가 준 데이터:", data);
+      // test console 
+      // console.log("Supabase가 준 데이터:", data);
       
-      if (data) setProducts(data);
+      if (data) setProducts(data as Product[]);
     } catch {
       setErrorMsg("상품을 불러오는데 실패 했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -216,7 +215,8 @@ export default function HomePage() {
             // DB에서 걸러낸 filteredProducts를 맵핑 
             ) : filteredProducts.length > 0 ? (
               filteredProducts.map((item) => (
-                 <Link href={`/detail/${item.id}`} key={item.id}>
+                // -> item x Supabase에 있는 Product로 대체 
+                 <Link href={`/products/${item.id}`} key={item.id}>
                    <Card className="cursor-pointer border-none shadow-none group relative h-full">
                      <CardContent className="p-0">
                        <div className="bg-gray-100 rounded-xl overflow-hidden h-64 mb-4 relative group-hover:shadow-md transition-all">

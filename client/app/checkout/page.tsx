@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { useCartStore } from "@/store/cartStore";
 import DaumPostcode from "react-daum-postcode";
 import { X } from "lucide-react";
-// 👇 토스페이먼츠 SDK 추가
+// 토스페이먼츠 SDK 추가
 import { loadPaymentWidget, PaymentWidgetInstance } from "@tosspayments/payment-widget-sdk";
 
-// 토스페이먼츠 공식 테스트용 클라이언트 키 (테스트용이라 그냥 노출되어도 안전합니다!)
+
 const TOSS_CLIENT_KEY = "test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm";
 const CUSTOMER_KEY = "test_customer_key_1234"; 
 
