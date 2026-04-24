@@ -1,56 +1,70 @@
-/**
- * @file components/ProductActions.tsx
- * @description 수량 조절 및 장바구니 담기 클라이언트 컴포넌트
- */
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
+import { useCartStore } from '@/store/cartStore'; // 경로 확인 필요
 
-type Props = {
-  productId: number; // DB ID 타입에 맞게 string 또는 number로 지정
-  price: number;
-};
+interface ProductActionsProps {
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    imageUrl: string; // 스키마에 따라 thumbnail 등으로 변경
+  };
+}
 
-export default function ProductActions({ productId, price }: Props) {
+export default function ProductActions({ product }: ProductActionsProps) {
+  // Product 확인용 주석
+  // console.log("ProductActions로 넘어온 데이터:", product);
+  
+  // 로컬 상태: 유저가 화면에서 조작하는 수량
   const [quantity, setQuantity] = useState(1);
-
-  const handleDecrease = () => {
-    if (quantity > 1) setQuantity((prev) => prev - 1);
-  };
-
-  const handleIncrease = () => {
-    // 최대 수량 제한이 필요하다면 여기서 로직 추가 가능
-    setQuantity((prev) => prev + 1);
-  };
+  
+  // 전역 상태 액션: 스토어에서 addItem 함수만 구독 (렌더링 최적화)
+  const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = () => {
-    alert(`상품 ID ${productId}을(를) ${quantity}개 장바구니에 담았습니다. (총액: ₩ ${(price * quantity).toLocaleString()})`);
+    // 1. 스토어에 Payload 전달
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      imageUrl: product.imageUrl,
+    });
+
+    // 2. UX 피드백 (추후 Toast UI 등으로 고도화 가능)
+    alert(`${product.name}이(가) 장바구니에 담겼습니다! 🎸`);
   };
 
+  const handleIncrement = () => setQuantity((prev) => prev + 1);
+  const handleDecrement = () => setQuantity((prev) => Math.max(1, prev - 1));
+
   return (
-    <div className="flex flex-col space-y-4">
-      {/* 수량 조절기 */}
-      <div className="flex items-center space-x-4">
-        <span className="font-medium">수량</span>
-        <div className="flex items-center border rounded-md h-10 w-32 bg-white">
-          <button onClick={handleDecrease} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 transition">-</button>
-          <span className="flex-1 text-center font-medium">{quantity}</span>
-          <button onClick={handleIncrease} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 transition">+</button>
-        </div>
+    <div className="flex flex-col gap-4 mt-6">
+      {/* 수량 조절 UI 영역 */}
+      <div className="flex items-center gap-4">
+        <button onClick={handleDecrement} className="px-3 py-1 border">-</button>
+        <span className="font-bold">{quantity}</span>
+        <button onClick={handleIncrement} className="px-3 py-1 border">+</button>
       </div>
 
-      {/* 총 금액 표시 (옵션) */}
-      <div className="text-right text-sm text-gray-500">
-        총 금액: <span className="font-bold text-gray-900 text-lg">₩ {(price * quantity).toLocaleString()}</span>
+      {/* 총 결제 금액 실시간 연산 */}
+      <div className="text-xl font-bold mt-2">
+        총 결제 금액: {(product.price * quantity).toLocaleString()}원
       </div>
 
-      {/* 장바구니 버튼 */}
-      <button 
-        onClick={handleAddToCart}
-        className="w-full h-14 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition"
-      >
-        장바구니 담기
-      </button>
+      {/* 장바구니 담기 & 구매 버튼 */}
+      <div className="flex gap-2 w-full mt-4">
+        <button 
+          onClick={handleAddToCart}
+          className="flex-1 bg-gray-900 text-white py-3 rounded-md hover:bg-gray-800 transition"
+        >
+          장바구니 담기
+        </button>
+        <button className="flex-1 border border-gray-900 py-3 rounded-md hover:bg-gray-100 transition">
+          바로 구매
+        </button>
+      </div>
     </div>
   );
 }

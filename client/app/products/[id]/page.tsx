@@ -72,7 +72,7 @@ export default async function ProductDetailPage({ params }: Props) {
           {/* 수량 및 구매 액션 */}
           <div className="flex flex-col space-y-4">
             <div className="flex items-center space-x-4">
-              <ProductActions productId={Products.id} price={Products.price} />
+              <ProductActions product={Products.id}/>
             </div>
           </div>
         </div>

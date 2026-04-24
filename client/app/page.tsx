@@ -29,8 +29,12 @@ export default function HomePage() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   
-  const cart = useCartStore((state) => state.cart);
-  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+  // const cart = useCartStore((state) => state.cart);
+  // const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // 스토어에서 정확한 상태 값(items)을 추출하고, SSR 렌더링 시 undefined를 방어하기 위해 빈 배열을 fallback으로 제공합니다.
+     const items = useCartStore((state) => state.items) || [];
+     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     // 로그인 증거있나 확인

@@ -1,60 +1,61 @@
 import { create } from 'zustand';
-// persist 미들웨어 추가
-import { persist } from 'zustand/middleware'; 
+import { persist } from 'zustand/middleware';
 
+// 1. 도메인 모델 정의
 export interface CartItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
+  imageUrl: string;
 }
 
+// 2. 스토어 인터페이스 정의
 interface CartStore {
-  cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  increaseQuantity: (id: string) => void;
-  decreaseQuantity: (id: string) => void;
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
 }
 
+// 3. 전역 스토어 인스턴스 생성 (Middleware 부착)
 export const useCartStore = create<CartStore>()(
   persist(
     (set) => ({
-      cart: [] as CartItem[],
+      items: [],
 
-      addToCart: (newItem) => set((state) => {
-        const existingItem = state.cart.find((item) => item.id === newItem.id);
-        if (existingItem) {
-          return {
-            cart: state.cart.map((item) =>
-              item.id === newItem.id ? { ...item, quantity: item.quantity + 1 } : item
-            ),
-          };
-        }
-        return { cart: [...state.cart, { ...newItem, quantity: 1 }] };
-      }),
+      addItem: (item) =>
+        set((state) => {
+          const existingItem = state.items.find((i) => i.id === item.id);
+          if (existingItem) {
+            return {
+              items: state.items.map((i) =>
+                i.id === item.id
+                  ? { ...i, quantity: i.quantity + item.quantity }
+                  : i
+              ),
+            };
+          }
+          return { items: [...state.items, item] };
+        }),
 
-      increaseQuantity: (id) => set((state) => ({
-        cart: state.cart.map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-        ),
-      })),
+      removeItem: (id) =>
+        set((state) => ({
+          items: state.items.filter((i) => i.id !== id),
+        })),
 
-      decreaseQuantity: (id) => set((state) => ({
-        cart: state.cart.map((item) =>
-          item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
-        ),
-      })),
+      updateQuantity: (id, quantity) =>
+        set((state) => ({
+          items: state.items.map((i) =>
+            i.id === id ? { ...i, quantity } : i
+          ),
+        })),
 
-      removeItem: (id) => set((state) => ({
-        cart: state.cart.filter((item) => item.id !== id),
-      })),
-
-      clearCart: () => set({ cart: [] }),
+      clearCart: () => set({ items: [] }),
     }),
     {
-      name: 'music-gear-cart', // 로컬 스토리지에 저장될 이름
+      name: 'music-gear-cart', // LocalStorage Key
     }
   )
 );
